@@ -5,9 +5,9 @@ import streamlit as st
 import pandas as pd 
 import os 
 import numpy as np 
+import hvplot.pandas
 import math
 import time
-import hvplot.pandas
 from pathlib import Path
 from datetime import date
 from datetime import datetime, timedelta
@@ -365,15 +365,11 @@ top_class_stocks = top_stocks.loc[top_stocks["Class"] == top_class[0]]
 # View the top class stocks
 st.dataframe(top_class_stocks)
 
-with dataset5:
-    st.title("Technical Analysis")
-    st.header("Trading data")
-    portfolio_df = create_technical_analysis_df()
-    st.dataframe(portfolio_df.head(5))
+st.title("Technical Analysis")
+st.header("Trading data")
+portfolio_df = create_technical_analysis_df()
+st.dataframe(portfolio_df.head(5))
 
-    st.subheader("Best stock pick")
-    technicals = portfolio_df[["Stochastic_Ratio","CCI","ATR_Ratio","close"]]
-    st.header("Winning stock pick")
-    st.dataframe(technicals.tail())
-
-
+technicals = portfolio_df[["Stochastic_Ratio","CCI","ATR_Ratio","close"]]
+st.header("Winning stock pick")
+st.dataframe(technicals.tail())
