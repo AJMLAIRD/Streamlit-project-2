@@ -7,7 +7,7 @@ import os
 import numpy as np 
 import math
 import time
-import hvplot.pandas
+import hvplot.pandas as hvplot
 from pathlib import Path
 from datetime import date
 from datetime import datetime, timedelta
