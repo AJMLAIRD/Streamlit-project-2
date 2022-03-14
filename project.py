@@ -7,7 +7,6 @@ import os
 import numpy as np 
 import math
 import time
-import hvplot.pandas as hvplot
 from pathlib import Path
 from datetime import date
 from datetime import datetime, timedelta
@@ -306,7 +305,6 @@ for i in k:
 st.header("Elbow curve")
 elbow_data = {"k": k, "inertia": inertia}
 df_elbow = pd.DataFrame(elbow_data)
-df_elbow.hvplot.line(x="k", y="inertia", title="Elbow Curve", xticks=k)
 st.line_chart(df_elbow)
 
 # Initialize the K-Means model
