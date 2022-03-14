@@ -1,3 +1,5 @@
+from optparse import Option
+from posixpath import split
 from urllib import request
 import streamlit as st 
 import pandas as pd 
@@ -59,12 +61,14 @@ header = st.container()
 dataset1 = st.container()
 dataset2 = st.container() 
 dataset3 = st.container()
+dataset4 = st.container()
+dataset5 = st.container()
 features = st.container()
 model_training = st.container()
 
 with header:
-    st.title("Meme stock sentiment trading algorithim")
-    st.text("Project 2 Fintech Bootcamp")
+    st.title("Social Sentiment Meme Stock Picker and Technical Analyser")
+    st.write("Developed by members of Group-1 for Project 2 of the Monash University FinTech Bootcamp 2021-2022")
 
 
 def create_alpaca_connection():    
@@ -237,49 +241,59 @@ def create_returns_df():
     return returns
 
 with dataset1:
-    st.header("Social Sentiment")
     load_dotenv()
     ss_key = os.getenv("SS_API_KEY")
     alpaca_api_key = os.getenv("ALPACA_API_KEY")
     alpaca_secret_key = os.getenv("ALPACA_SECRET_KEY")
+
+    st.subheader('Welcome to the Memestock picker. This app uses a special algorithim which analyses sentiment across social media and generates a portfolio that is predicted to perform well.')
+    
+    col1, col2, = st.columns(2)
+    
+with col1:
+    st.header("Latest sentiment")
     sentiment_df = get_sentiment_df()
     sentiment_df.head()
     st.dataframe(sentiment_df)
 
-    st.header("Sentiment trending")
+with col2:
+    st.header("Trending sentiment")
     sentiment_trending_df = get_sentiment_trending_df()
     sentiment_trending_df.head()
     st.dataframe(sentiment_trending_df)
 
-    st.header("Visualisations")
+with dataset2:
+
+    col3, col4, = st.columns([3,1])
+
+with col3:
+    st.header("Trending stock sentiment scores")
     sentiment_trending_plot_df = sentiment_trending_df.set_index("stock")
-sentiment_trending_plot_df["score"].plot(
+    sentiment_trending_plot_df["score"].plot(
     kind='bar',
     x='stock',
     y='score', 
     title = "Trending Stock Sentiment Scores",
-    figsize=(20,10)
-)
-st.bar_chart(sentiment_trending_plot_df)
-stock_name = pd.DataFrame(sentiment_trending_df['stock'])
-st.dataframe(stock_name.head(3))
+    figsize=(20,10))
+    st.bar_chart(sentiment_trending_plot_df)
 
-st.write("Data prep")
-x = sentiment_trending_df.set_index("stock")
-st.dataframe(x)
+with col4:
+    st.subheader("Top 3 trending stocks")
+    stock_name = pd.DataFrame(sentiment_trending_df['stock'])
+    st.dataframe(stock_name.head(3))
 
-st.write("Standardised data")
-x_scaled = StandardScaler().fit_transform(x)
-st.code(x_scaled[0:5])
+with dataset3:
+    x = sentiment_trending_df.set_index("stock")
+    
+    x_scaled = StandardScaler().fit_transform(x)
+    st.subheader("Principal component analysis")
+    pca = PCA(n_components=3)
+    sentiment_pca = pca.fit_transform(x_scaled)
+    pcs_df = pd.DataFrame(
+    data=sentiment_pca, columns=["PC 1","PC 2","PC 3"], index=x.index)
+    st.dataframe(pcs_df.head(10))
 
-pca = PCA(n_components=3)
-sentiment_pca = pca.fit_transform(x_scaled)
-pcs_df = pd.DataFrame(
-    data=sentiment_pca, columns=["PC 1","PC 2","PC 3"], index=x.index
-)
-st.dataframe(pcs_df.head(10))
-
-st.write("K values")
+    # Determine the optimal value for k using k= 1-11
 inertia = []
 k = list(range(1, 11))
 
@@ -289,13 +303,11 @@ for i in k:
     km.fit(pcs_df)
     inertia.append(km.inertia_)
 
-# Create the Elbow Curve using hvPlot
+st.header("Elbow curve")
 elbow_data = {"k": k, "inertia": inertia}
 df_elbow = pd.DataFrame(elbow_data)
 df_elbow.hvplot.line(x="k", y="inertia", title="Elbow Curve", xticks=k)
 st.line_chart(df_elbow)
-
-st.header("K-Means model")
 
 # Initialize the K-Means model
 model = KMeans(n_clusters=5, random_state=0)
@@ -306,7 +318,8 @@ model.fit(pcs_df)
 # Predict clusters
 predictions = model.predict(pcs_df)
 
-# Create a new DataFrame including predicted clusters and cryptocurrencies features
+# Create a new DataFrame including predicted clusters and trending sentiment features
+st.header("Predicted clusters")
 clustered_df = pd.DataFrame({
     "score": x.score,
     "positive_score": x.positive_score,
@@ -327,6 +340,7 @@ clustered_df = pd.DataFrame({
 )
 st.dataframe(clustered_df.head())
 
+st.header("Enhanced visualisation of predicted clusters")
 # Plotting the 3D-Scatter with x="PC 1", y="PC 2" and z="PC 3"
 fig = px.scatter_3d(
     clustered_df,
@@ -340,20 +354,26 @@ fig = px.scatter_3d(
 )
 st.plotly_chart(fig)
 
-st.write("Top stocks")
-top_stocks = clustered_df.sort_values("score", ascending=False).head(10)  
-# Get all stocks in the top class
+st.header("Top class stocks")
+st.subheader("Top stocks based on score")
+    
+# Sort the clustered_df by score and order the DataFrame selecting the top 10
+top_stocks = clustered_df.sort_values("score", ascending=False).head(10)                   
+# Select the class most represented in the top 10 stocks
 top_class = top_stocks["Class"].mode()
 top_class_stocks = top_stocks.loc[top_stocks["Class"] == top_class[0]]
+# View the top class stocks
 st.dataframe(top_class_stocks)
 
-st.title("Technical Analysis")
-portfolio_df = create_technical_analysis_df()
-st.dataframe(portfolio_df.head())
+with dataset5:
+    st.title("Technical Analysis")
+    st.header("Trading data")
+    portfolio_df = create_technical_analysis_df()
+    st.dataframe(portfolio_df.head(5))
 
-#Note this .drop function automatically moves the 'symbol' column to create a multi-level index once row 6 is dropped from original df
-technicals = portfolio_df[["Stochastic_Ratio","CCI","ATR_Ratio","close"]]
-st.dataframe(technicals.tail())
+    st.subheader("Best stock pick")
+    technicals = portfolio_df[["Stochastic_Ratio","CCI","ATR_Ratio","close"]]
+    st.header("Winning stock pick")
+    st.dataframe(technicals.tail())
 
-st.title("Trading Signals")
 
