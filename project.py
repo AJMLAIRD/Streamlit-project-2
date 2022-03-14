@@ -365,10 +365,23 @@ top_class_stocks = top_stocks.loc[top_stocks["Class"] == top_class[0]]
 # View the top class stocks
 st.dataframe(top_class_stocks)
 
+<<<<<<< HEAD
 st.title("Technical Analysis")
 st.header("Trading data")
 portfolio_df = create_technical_analysis_df()
 st.dataframe(portfolio_df.head(5))
+=======
+with dataset5:
+    st.title("Technical Analysis")
+    st.header("Trading data")
+    portfolio_df = create_technical_analysis_df()
+    st.dataframe(portfolio_df.head(5))
+    
+    technicals = portfolio_df[["Stochastic_Ratio","CCI","ATR_Ratio","close"]]
+    st.header("Winning stock pick")
+    st.dataframe(technicals.tail())
+
+>>>>>>> c7687fdf5a34567e5f14ddc4888ccde5d4468152
 
 technicals = portfolio_df[["Stochastic_Ratio","CCI","ATR_Ratio","close"]]
 st.header("Winning stock pick")
