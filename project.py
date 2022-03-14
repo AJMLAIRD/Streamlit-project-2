@@ -370,8 +370,7 @@ with dataset5:
     st.header("Trading data")
     portfolio_df = create_technical_analysis_df()
     st.dataframe(portfolio_df.head(5))
-
-    st.subheader("Best stock pick")
+    
     technicals = portfolio_df[["Stochastic_Ratio","CCI","ATR_Ratio","close"]]
     st.header("Winning stock pick")
     st.dataframe(technicals.tail())
